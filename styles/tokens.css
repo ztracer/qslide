@@ -1,0 +1,63 @@
+/* Design tokens — do not scatter hex values across the deck */
+
+:root {
+  /* Background */
+  --bg-primary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-card-alt: #EEF2F7;
+
+  /* Text */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+
+  /* Semantic */
+  --color-quantum-danger: #DC2626;  /* 量子威胁/失效 */
+  --color-pq-safe: #008C86;         /* 后量子安全/保护 */
+  --color-formal-math: #6D28D9;     /* 形式化/数学 */
+  --color-protocol: #1D4ED8;        /* 协议/工程 */
+  --color-hybrid: #C2410C;          /* 过渡/混合 */
+
+  /* Tinted card backgrounds — subtle hue shift */
+  --tint-quantum: rgba(229, 62, 62, 0.10);
+  --tint-pq:      rgba(0, 161, 155, 0.10);
+  --tint-formal:  rgba(124, 58, 237, 0.10);
+  --tint-proto:   rgba(37, 99, 235, 0.10);
+  --tint-hybrid:  rgba(234, 88, 12, 0.10);
+
+  /* Tinted card backgrounds — deeper variant for emphasis */
+  --tint-quantum-strong: rgba(229, 62, 62, 0.16);
+  --tint-pq-strong:      rgba(0, 161, 155, 0.16);
+  --tint-formal-strong:  rgba(124, 58, 237, 0.16);
+  --tint-proto-strong:   rgba(37, 99, 235, 0.16);
+  --tint-hybrid-strong:  rgba(234, 88, 12, 0.16);
+
+  /* Accent glow */
+  --glow-quantum: 0 0 20px rgba(229, 62, 62, 0.3);
+  --glow-pq: 0 0 20px rgba(0, 161, 155, 0.3);
+  --glow-formal: 0 0 20px rgba(124, 58, 237, 0.3);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+
+  /* Type scale */
+  --text-h1: 48px;
+  --text-h2: 36px;
+  --text-h3: 28px;
+  --text-body: 22px;
+  --text-sm: 18px;
+  --text-xs: 14px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Subtle 1px line used as a card top accent (works with border-radius) */
+  --line-soft: rgba(15, 23, 42, 0.12);
+}

@@ -1,0 +1,25 @@
+{
+  "name": "qslide",
+  "private": true,
+  "scripts": {
+    "build": "slidev build",
+    "build:pages": "slidev build --base /qslide/",
+    "check:notes": "node scripts/check-notes-in-dist.mjs",
+    "dev": "slidev --open",
+    "export": "slidev export",
+    "wf:artifact": "node .agents/skills/wonderful-slide/scripts/artifact-scan.mjs .",
+    "wf:class": "node .agents/skills/wonderful-slide/scripts/class-usage-scan.mjs .",
+    "wf:env": "node .agents/skills/wonderful-slide/scripts/env-check.mjs .",
+    "wf:export": "node .agents/skills/wonderful-slide/scripts/export-check.mjs .",
+    "wf:language": "node .agents/skills/wonderful-slide/scripts/language-check.mjs .",
+    "wf:research": "node .agents/skills/wonderful-slide/scripts/research-audit.mjs .",
+    "wf:style": "node .agents/skills/wonderful-slide/scripts/style-line-report.mjs . --limit=30 --warn=400"
+  },
+  "dependencies": {
+    "@slidev/cli": "^52.0.0",
+    "@slidev/theme-default": "latest"
+  },
+  "devDependencies": {
+    "playwright-chromium": "^1.61.0"
+  }
+}
