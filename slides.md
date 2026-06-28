@@ -208,18 +208,18 @@ layout: default
 
 <div class="deck-slide kem-dh-slide">
   <h2>迁移的第一个要点：KEM 和 DH 的方向不同</h2>
-  <p class="slide-lede">验证：后量子密钥封装机制（KEM）放到原来 Diffie-Hellman（DH）位置以后，身份和计算方法是否正确。</p>
+  <p class="slide-lede">验证：后量子密钥封装机制放到原来 Diffie-Hellman位置以后，身份和计算方法是否正确。</p>
   <div class="slide-grid wide-left">
     <div class="method-card kem-card">
-      <div class="paper-kicker">密钥封装机制（KEM）</div>
+      <div class="paper-kicker">Key Encapsulation Mechanism（KEM）</div>
       <div class="method-analogy">核心动作：一方用对方公钥封装出共享秘密。</div>
       <div class="operation-list">
         <div class="operation-step">
-          <strong>1. 接收方先生成密钥</strong>
+          <strong>1. 接收方先生成一对KEM密钥</strong>
           <p><code>(pk, sk) ← KeyGen()</code>：公开 <code>pk</code>，自己保存 <code>sk</code>。</p>
         </div>
         <div class="operation-step">
-          <strong>2. 发送方用公钥封装</strong>
+          <strong>2. 发送方拿接收方的 pk 做 Encaps(pk)</strong>
           <p><code>(ct, ss) ← Encaps(pk)</code>：发出密文 <code>ct</code>，本地得到共享秘密 <code>ss</code>。</p>
         </div>
         <div class="operation-step">
@@ -252,6 +252,7 @@ layout: default
       <div class="compact-list">
         <p><strong>方向感：</strong>双方对称地贡献秘密。</p>
         <p><strong>检查点：</strong>静态公钥在很多协议里还带身份含义。</p>
+        <p><strong>WHY IT CAN'T：</strong>传统 DH/ECDH 依赖离散对数问题，未来足够强的量子计算机可用 Shor 算法破坏它。后量子密码不能继续靠这个数学假设。</p>
       </div>
     </div>
   </div>
@@ -432,7 +433,92 @@ layout: default
 这页给 PQ3 case 内部路线，让后面的论文图都挂在同一条问题链上。
 第一条线是协议安全：敌手模型、密钥机制、安全性质和边界。
 第二条线是方法贡献：Tamarin 通过证明工程处理嵌套循环协议。
-转场：先从敌手开始，PQ3 到底把未来量子能力抽象成什么事件？
+转场：先理解 iMessage/Signal 原始协议的三层密钥架构，再看 PQ3 到底把后量子材料塞进了哪个位置、定义了什么样的未来敌手。
+-->
+
+---
+layout: default
+---
+
+<div class="deck-slide signal-bg-slide signal-architecture-slide">
+  <h2>1.2 即时聊天软件里的端到端加密演进</h2>
+  <p class="slide-lede">当 iMessage 在 2011 年推出时，是首个默认提供端到端加密的广泛可用消息应用，多年来APPLE对其加密技术进行了升级。2019 年将 iMessage 的加密协议从 RSA 升级到椭圆曲线密码 (ECC)。PQ3是苹果针对HNDL做的一次后量子迁移，并使用形式化方法进行了验证</p>
+  <div class="crypto-level-map">
+    <div class="level-group classical">
+      <div class="group-title">
+        <strong>Classical Cryptography</strong>
+        <span>Not quantum secure</span>
+      </div>
+      <div class="level-track">
+        <div class="level-node level-0">
+          <div class="level-label">Level 0</div>
+          <strong>No end-to-end encryption by default</strong>
+          <span>QQ · Skype · Telegram · WeChat</span>
+        </div>
+        <div class="level-node level-1">
+          <div class="level-label">Level 1</div>
+          <strong>End-to-end encryption by default</strong>
+          <span>Line · Viber · WhatsApp · Signal previous · iMessage previous</span>
+        </div>
+      </div>
+    </div>
+    <div class="level-group pqc">
+      <div class="group-title">
+        <strong>Post-Quantum Cryptography (PQC)</strong>
+        <span>With end-to-end encryption by default</span>
+      </div>
+      <div class="level-track pq-track">
+        <div class="level-node level-2">
+          <div class="level-label">Level 2</div>
+          <strong>PQC key establishment only</strong>
+          <span>Signal with PQXDH</span>
+        </div>
+        <div class="level-node level-3">
+          <div class="level-label">Level 3</div>
+          <strong>PQC key establishment<br/>+<br/>Ongoing PQC rekeying</strong>
+          <span>NEW · iMessage with PQ3</span>
+        </div>
+        <div class="level-node level-future">
+          <div class="level-label">Future</div>
+          <strong>PQC key establishment<br/>+<br/>Ongoing PQC rekeying<br/>+<br/>PQC authentication</strong>
+          <span>Protection against future quantum threats</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <div class="level-callouts">
+    <div><strong>Level 2 的边界</strong><span>后量子秘密只保护初始建连，长期聊天仍要靠后续状态刷新。</span></div>
+    <div><strong>Level 3 的跃迁</strong><span>PQ3 周期性把 KEM 共享秘密重新塞进 root key，让 PQ 材料伴随对话向前滚动。</span></div>
+    <div><strong>核心</strong><span>PQ3 将 KEM 变成长期会话状态的一部分</span></div>
+  </div>
+</div>
+
+<!--
+这页换成 Level 演进图，先建立听众的整体直觉：PQ3 的关键不是把后量子握手放在开头做一次，而是在长期对话中持续做 PQC rekeying。
+
+Level 0：默认没有端到端加密。
+Level 1：默认端到端加密，但主要还是经典密码学。
+Level 2：建连阶段有后量子密钥建立，比如 Signal with PQXDH。它挡住 HNDL 的第一轮风险，但后续长期对话如果只依赖旧状态，就没有持续后量子刷新。
+Level 3：PQ3 的重点是 PQC key establishment + ongoing PQC rekeying。也就是后量子 KEM 材料会周期性进入会话状态，刷新 root key，再影响 chain key 和 message key。
+Future：进一步还需要 PQC authentication，避免身份认证仍依赖经典签名。
+
+这张图的讲法：
+不要先陷入 IDS、IK/SPK/OPK、RK/CK/MK 的细节。先让听众看到“Level 2 到 Level 3”的差别：一次性 PQ 握手 vs 长期持续重注入。
+
+下面这些是需要口头补的技术背景：
+
+三层密钥：根密钥（RK）保存对话积累的秘密，由 DH 棘轮更新；链密钥（CK）服务一个发言方向，由对称棘轮推进；消息密钥（MK）加密单条消息，用完删除。
+
+IDS 是关键信任锚点：发起方从 IDS 拉到接收方的公钥包，如果 IDS 被控制则认证性不成立。PQ3 论文把"IDS 诚实分发公钥"作为显式假设写进了模型。
+
+初始密钥协商：Alice 从 IDS 拉 Bob 的 identity key + signed pre-key + one-time pre-key，生成临时 ECDH 密钥，分别与 Bob 的多把公钥做多次 DH，结果送进 KDF 得到初始 root key。这个流程和 Signal 的 X3DH 设计理念类似，但 iMessage 有自己的具体实现。
+
+双棘轮：DH 棘轮在方向切换时更新 root key（注入新熵 → PCS），对称棘轮在连续发送时推进 chain key（每条消息一个 MK → FS）。
+
+为什么这页重要：后面 PQ3 的改动全部围绕"在这条经典依赖链的哪个位置放入 KEM 共享秘密"展开。
+
+转场：有了 Level 3 的目标以后，再看 PQ3 定义了什么样的未来敌手。
 -->
 
 ---
@@ -440,8 +526,8 @@ layout: default
 ---
 
 <div class="deck-slide pq-attack-slide">
-  <h2>1.2 PQ3 敌手：PQAttackerStart</h2>
-  <p class="slide-lede">面对 HNDL，论文不是真的在模型里放一台量子计算机😀；它把未来量子能力抽象成一个事件：【经典公钥】相关的秘密全部暴露。</p>
+  <h2>1.3 PQ3 敌手：PQAttackerStart 未来泄露事件</h2>
+  <p class="slide-lede">面对 HNDL，论文把未来量子能力抽象成一个事件😀：假设【经典公钥】相关的秘密全部暴露。</p>
   <div class="attack-event">
     <div class="event-step past">
       <div class="event-time">今天</div>
@@ -464,11 +550,11 @@ layout: default
 </div>
 
 <!--
-这页先定义 PQ3 要防的未来敌手。
+这页先定义 PQ3 要防的未来敌手：PQAttackerStart 不是一种新敌手，而是模型中的阶段切换：从这一刻起，经典 ECDH 相关秘密可被视为已泄露，用来模拟未来量子攻击。
 
-攻击者今天保存网络消息，未来量子能力成熟后恢复经典公钥相关秘密。
+Dolev-Yao attacker 是 Tamarin 这类符号模型默认的网络敌手能力：可以监听、拦截、重放、组合、拆解已知消息，但不能凭空破解密码原语。
 
-PQAttackerStart 表示这个未来时刻：所有非后量子秘密暴露，KEM 秘密仍按后量子假设保持安全。
+PQAttackerStart 是 PQ3 为了模拟 “Harvest Now, Decrypt Later” 额外加入的时间点：从这个事件之后，攻击者被允许拿到经典公钥密码相关的秘密，比如 ECDH 私钥等。它表达的是：`未来量子计算机出现后，经典 ECC/DH 相关秘密不再可信。`
 
 转场：面对这个敌手，PQ3 的核心答案是让 KEM 材料进入 root key、chain key 和 message key 的依赖链。
 
@@ -480,7 +566,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-keys-slide">
-  <h2>1.3 PQ3 的方案：让 KEM 进入消息密钥的来源链</h2>
+  <h2>1.4 PQ3 的方案：让 KEM 进入消息密钥的来源链</h2>
   <p class="slide-lede">Figure 1 给出了密钥之间的依赖关系；会话启动时，Alice 把经典 ECDH 秘密和后量子 KEM 秘密一起放进第一版状态。</p>
   <div class="slide-grid wide-right">
     <div class="key-layers">
@@ -547,6 +633,76 @@ ECDH 这一侧：
 
 攻击者仍然需要跨过 KEM 这一侧，才可能恢复消息密钥。
 
+转场：Figure 1 画的是密钥之间的静态依赖关系；接下来把这张图放进一次完整的 Alice→Bob 会话里走一遍，看三个棘轮分别在什么时候动作。
+-->
+
+---
+layout: default
+---
+
+<div class="deck-slide pq3-flow-slide">
+  <h2>1.5 PQ3 消息流走读：从首发到回复，三个棘轮各司其职</h2>
+  <p class="slide-lede">把刚才 Figure 1 的依赖关系和 Figure 2 的公钥棘轮放到一次完整会话里走一遍。</p>
+  <div class="pq3-msg-flow">
+    <div class="flow-phase init">
+      <div class="phase-header">
+        <div class="phase-num">Phase ①</div>
+        <strong>Alice 首发：拉包 → 混合协商 → 初始化会话</strong>
+      </div>
+      <div class="phase-steps">
+        <div class="flow-step"><span>1</span><p>从 IDS 拉取 Bob 的 P-256 ECDH 公钥 <strong>和</strong> Kyber-1024 KEM 公钥。</p></div>
+        <div class="flow-step"><span>2</span><p>ECDH：Alice 临时私钥 × Bob 的 P-256 公钥 → <strong>经典共享秘密</strong>。</p></div>
+        <div class="flow-step"><span>3</span><p>KEM：用 Bob 的 Kyber 公钥封装 → <strong>后量子共享秘密</strong> + 密文 ct。</p></div>
+        <div class="flow-step"><span>4</span><p>HKDF-SHA384 先后 Extract 两份秘密 → 合并派生 <strong>初始 root key</strong>。</p></div>
+        <div class="flow-step"><span>5</span><p>从 root key 派生第一条发送链密钥（CK<sub>send</sub>）→ 对称棘轮产生 message key → 加密首条消息。</p></div>
+      </div>
+    </div>
+    <div class="flow-arrow-between">▼  Alice 连续发多条消息：对称棘轮逐条推进 chain key，每条消息一把新 MK，用完删除 ▼</div>
+    <div class="flow-phase reply">
+      <div class="phase-header">
+        <div class="phase-num">Phase ②</div>
+        <strong>Bob 回复：DH 棘轮 + 周期性 KEM 重注入</strong>
+      </div>
+      <div class="phase-steps">
+        <div class="flow-step"><span>6</span><p>Bob 生成新鲜 ECDH 棘轮密钥对，用 Alice 的上次棘轮公钥做 DH → 新共享秘密。</p></div>
+        <div class="flow-step"><span>7</span><p>旧 root key + 新 DH 秘密 → HKDF → <strong>更新 root key</strong>。（这是经典 DH 棘轮，每条回复都发生）</p></div>
+        <div class="flow-step"><span>8</span><p>如果满足触发条件（约每 50 条消息 / 至少每 7 天一次）：Bob 额外发送新鲜 Kyber-768 KEM 公钥，Alice 封装 → <strong>新的后量子共享秘密</strong> 也进入 root key 更新。</p></div>
+        <div class="flow-step"><span>9</span><p>新 root key 派生 Bob 的发送链密钥 → 对称棘轮 → Bob 的每条回复消息一把新 MK。</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="three-ratchet-summary">
+    <div class="ratchet-mini sym"><strong>对称棘轮</strong><span>每条消息推进 chain key → 消息密钥用完即删 → 前向保密</span></div>
+    <div class="ratchet-mini dh"><strong>ECDH 棘轮</strong><span>每次回复注入新 DH 熵 → 经典泄露后恢复（每条消息触发）</span></div>
+    <div class="ratchet-mini kem"><strong>Kyber KEM 棘轮</strong><span>周期性注入后量子熵 → 后量子泄露后恢复（自适应触发，约 50 条 / 7 天）</span></div>
+  </div>
+  <div class="takeaway pq">PQ3 = 经典双棘轮 + 第三个周期性后量子棘轮。核心创意：KEM 材料不只在会话开始时进入一次，而是在整个对话生命周期中反复刷新。</div>
+</div>
+
+<!--
+这页是整段 PQ3 讲解中最重要的"故事线"——把 Figure 1（密钥依赖图）和 Figure 2（公钥棘轮步骤）串成一次完整的消息流。
+
+Phase ① Alice 首发：
+1. 从 IDS 拉 Bob 的两种公钥：P-256（经典）和 Kyber-1024（后量子）
+2. ECDH 得经典共享秘密
+3. KEM Encaps 得后量子共享秘密 + 密文
+4. 两份秘密先后送进 HKDF-SHA384 → 合并派生初始 root key
+5. root key → chain key → symmetric ratchet → message key → 加密
+
+Phase ② Bob 回复：
+6. Bob 生成新鲜 ECDH 棘轮密钥，与 Alice 的上次公钥做 DH（经典 DH 棘轮）
+7. 旧 root key + 新 DH 秘密 → 更新 root key
+8. 关键区别：这里还会周期性触发 Kyber KEM 重注入。大约每 50 条消息或至少每 7 天一次，Bob 发送新鲜 Kyber-768 公钥，Alice 封装 → 新的后量子秘密进入 root key 更新
+9. 新 root key → Bob 的 chain key → symmetric ratchet → Bob 的消息
+
+三个棘轮的对比总结：
+- 对称棘轮：每条消息，推进 chain key，用完删除 → FS
+- ECDH 棘轮：每次回复，注入新 DH 熵 → 经典 PCS
+- Kyber KEM 棘轮：周期性（~50 msgs / 7 days），注入后量子熵 → 后量子 PCS
+
+这页也解释了 Apple 为什么宣称 PQ3 达到 "Level 3"：Level 2（如 Signal PQXDH）只在初始握手做一次后量子密钥协商；PQ3 在整个对话生命周期中周期性重注入后量子材料，所以即使中间某次 root key 泄露，后续 KEM 刷新能恢复安全。
+
+转场：KEM 周期性重注入引出一个自然问题——刷新到底发生在什么时间点？攻击者又在哪个时间点拿到哪些秘密？这就是下一页要讲的泄露窗口。
 -->
 
 ---
@@ -554,8 +710,8 @@ layout: default
 ---
 
 <div class="deck-slide pq3-refresh-slide">
-  <h2>1.4 长期对话的独特性：不断把新材料补进 root key</h2>
-  <p class="slide-lede">第一轮混合还不够；当发言方向切换时，PQ3 会用新的公钥材料刷新上层状态。</p>
+  <h2>1.6 长期对话的独特性：周期性刷新，把后量子保护向前滚动</h2>
+  <p class="slide-lede">第一轮混合只保护初始握手；如果后续几千条消息都依赖同一个 root key 里的旧 KEM 材料，后量子保护不会向前滚动。PQ3 的答案是：每当发言方向切换，用新的公钥材料刷新上层状态，让后量子保护伴随对话持续更新。</p>
   <div class="slide-grid wide-left">
     <PaperFigure src="/papers/crops/pq3-fig2-public-key-ratchet.png" label="Figure 2" caption="四个 public-key ratchet step" source="【USENIX Security'25】PQ3" />
     <div class="refresh-explain">
@@ -580,7 +736,9 @@ layout: default
 
 <!--
 
-图里左边是 Alice，右边是 Bob。每一层是会话状态往前刷新一次。当发言方向切换时，比如 Alice 发完一段，Bob 开始回复，双方会拿新的公钥材料重新派生 root key。这里既有 ECDH 的材料，也有 KEM 的材料。”
+这里先回答”为什么需要周期性刷新”：如果只有第一轮混合（Level 2，比如 Signal PQXDH），后续几千条消息都依赖同一个 root key 里的旧 KEM 材料 → 后量子保护不会向前滚动。PQ3 的 Level 3 就是通过周期性 KEM 重注入解决这个问题。
+
+图里左边是 Alice，右边是 Bob。每一层是会话状态往前刷新一次。当发言方向切换时，比如 Alice 发完一段，Bob 开始回复，双方会拿新的公钥材料重新派生 root key。这里既有 ECDH 的材料，也有 KEM 的材料。
 
 因为长期协议里，安全不是一个静态结论。
 密钥会不断更新，攻击者也可能在不同时间点拿到不同秘密。
@@ -592,7 +750,7 @@ layout: default
 情况 3：攻击者未来拿到所有 ECDH 相关经典秘密。
 - 这正是 HNDL / PQAttack 的设定。PQ3 要证明的是，只要 KEM secret 没被拿到，新的后量子材料能把后续状态重新撑起来。
 
-刷新发生在不同时间点，而泄露也发生在某个时间点。安全边界取决于“泄露发生在刷新之前还是之后”。
+刷新发生在不同时间点，而泄露也发生在某个时间点。安全边界取决于”泄露发生在刷新之前还是之后”。
 
 这页是在为下一页铺垫：PQ3 的安全性不是只关联 KEM，而是思考 KEM 什么时候进入 root key，攻击者又是在什么时候拿到哪些秘密。
 -->
@@ -602,8 +760,8 @@ layout: default
 ---
 
 <div class="deck-slide pq3-windows-slide">
-  <h2>1.5 泄露会发生在哪？影响是什么？</h2>
-  <p class="slide-lede">刷新窗口的意义在这里：同样是密钥泄露，发生在新公钥材料进入之前或之后，会给出完全不同的安全边界。</p>
+  <h2>1.7 泄露会发生在哪？影响是什么？</h2>
+  <p class="slide-lede">刷新窗口的意义在这里：同样是密钥泄露，发生在新公钥材料进入之前或之后，会给出完全不同的安全边界。下面用一个具体场景走一遍三种时间关系。</p>
   <div class="window-lanes">
     <div class="window-lane root">
       <div class="window-speed">泄露之前</div>
@@ -624,16 +782,31 @@ layout: default
       <span>边界：后续消息是否恢复</span>
     </div>
   </div>
-  <div class="window-summary">验证时的核心问题：泄露发生在刷新之前，还是刷新之后？这直接对应前向保密和泄露后恢复。</div>
-  <div class="takeaway">机制到此变成验证问题：攻击者在哪一刻拿到哪些秘密，直接决定保密程度的条件。</div>
+  <div class="window-concrete">
+    <div class="paper-kicker">具体走一遍</div>
+    <div class="concrete-scenario">
+      <div class="scenario-setup"><strong>场景</strong><span>Alice 和 Bob 已经聊了 30 条消息；第 31 条是 Bob 的回复，触发 DH 棘轮 + 周期性 Kyber KEM 重注入。</span></div>
+      <div class="scenario-cases">
+        <div class="case bad"><strong>情况 A · 刷新前泄露</strong><span>第 25 条拿到 ECDH 棘轮私钥 → 可能回溯第 25-30 条；第 31 条后由新 KEM 材料切断追溯链。</span></div>
+        <div class="case ok"><strong>情况 B · 刷新后泄露</strong><span>第 35 条才拿到旧 ECDH 私钥 → 新 root key 已混入 KEM 秘密，旧经典秘密不足以推出后续消息。</span></div>
+        <div class="case worst"><strong>最坏情况 · 刷新夹缝</strong><span>第 30-31 条之间同时拿到旧 root key 和 ECDH 私钥 → 刷新前状态失败，但后续仍可重新恢复。</span></div>
+      </div>
+      <div class="scenario-moral"><strong>结论</strong><span>安全边界取决于：攻击者拿到哪些秘密，以及泄露发生在刷新之前还是之后。</span></div>
+    </div>
+  </div>
+  <div class="takeaway">机制到此变成验证问题：攻击者在哪一刻拿到哪些秘密，直接决定保密程度和恢复条件。</div>
 </div>
 
 <!--
-这一页从机制进入验证。泄露发生在刷新之前、刷新时、刷新之后，会决定哪些消息进入失败例外，哪些后续消息应该恢复安全。
+这一页从机制进入验证。上面的三个时间窗口给出了三种理论边界，下面用 Alice 和 Bob 聊了 30 条消息、第 31 条触发 KEM 重注入的具体场景走一遍。
 
-这里的 lemma 可以先理解成验证工具要证明的一条安全断言：如果没有发生指定的泄露例外，攻击者就不应该知道消息。那这一页就是在解释这些例外从哪里来。同样是泄露，发生在刷新前、刷新时、刷新后，影响范围完全不一样。刷新前泄露，旧消息可能受牵连；刷新时新的 KEM 材料进 root key，后面的状态有机会切断旧经典秘密的影响；刷新后消息链继续前进，用过的 message key 删除。于是 PQ3 的保密证明不是简单说‘泄露了也安全’，而是精确写清楚：哪一刻泄露了哪些秘密，哪些消息还应该保密，哪些消息只能列为例外。
+情况 A（刷新前泄露）：攻击者在第 25 条拿到 ECDH 私钥 → 能回溯同一 DH 棘轮周期内的第 25–30 条，但第 31 条以后新 KEM 材料已进入 root key → 切断追溯。
+情况 B（刷新后泄露）：攻击者在第 35 条才拿到旧 ECDH 私钥 → 第 31 条之后的 root key 已混入新 KEM 秘密 → 旧经典秘密不够。
+最坏情况：攻击者在第 30-31 条之间同时拿到旧 root key + ECDH 私钥 → 刷新前状态被攻破，但第 32 条起仍有新后量子材料保护。
 
-新 KEM 材料进来之前，旧状态可能被追；进来之后，后面的消息有机会恢复安全。
+这里的 lemma 可以先理解成验证工具要证明的一条安全断言：如果没有发生指定的泄露例外，攻击者就不应该知道消息。这页就是在解释这些例外从哪里来。同样是泄露，发生在刷新前、刷新时、刷新后，影响范围完全不一样。PQ3 的保密证明不是简单说’泄露了也安全’，而是精确写清楚：哪一刻泄露了哪些秘密，哪些消息还应该保密，哪些消息只能列为例外。
+
+最后一句话点题：消息保密、前向保密、泄露后恢复，对同一个 secrecy lemma 来说，只是泄露条件不同。
 -->
 
 ---
@@ -641,7 +814,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-model-slide">
-  <h2>1.6 PQ3 的模型同时放进正常聊天和未来泄露</h2>
+  <h2>1.8 PQ3 的模型同时放进正常聊天和未来泄露</h2>
   <p class="slide-lede">论文把聊天步骤、密钥刷新、密钥泄露和未来量子事件都写进同一个状态机；工具搜索这些步骤任意交错时有没有坏路径。</p>
   <div class="slide-grid wide-left">
     <PaperFigure src="/papers/crops/pq3-fig3-model-overview.png" label="Figure 3" caption="formal model overview" source="【USENIX Security'25】PQ3" />
@@ -686,7 +859,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-secrecy-slide">
-  <h2>1.7 一个保密性 lemma 同时表达三种安全边界</h2>
+  <h2>1.9 一个保密性 lemma 同时表达三种安全边界</h2>
   <p class="slide-lede">论文把消息保密、前向保密和泄露后恢复用同一个框架给出不同泄露条件。</p>
   <div class="slide-grid wide-left">
     <PaperFigure src="/papers/crops/pq3-fig4-secrecy-lemma.png" label="Figure 4" caption="secrecy lemma" source="【USENIX Security'25】PQ3" />
@@ -732,7 +905,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-agreement-slide">
-  <h2>1.8 认证性：我收到的消息真是你发的吗？</h2>
+  <h2>1.10 认证性：我收到的消息真是你发的吗？</h2>
   <p class="slide-lede">消息保密只说明别人看不懂；聊天协议还要保证接收方没有被冒名消息或重放消息骗过。</p>
   <div class="slide-grid wide-left">
     <PaperFigure src="/papers/crops/pq3-fig7-8-agreement.png" label="Figures 7–8" caption="agreement lemmas" source="【USENIX Security'25】PQ3" />
@@ -765,6 +938,7 @@ layout: default
 
 最后这块是边界：如果发送方长期身份密钥已经泄露，认证当然会坏；会话开始消息还依赖应用层处理。形式化验证的价值就是把这些保证和边界分开。
 
+转场：保密和认证都看完后，还有一个方法层面的贡献：PQ3 展示了 Tamarin 也能处理双棘轮这种嵌套循环协议。
 -->
 
 ---
@@ -772,7 +946,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-proof-slide">
-  <h2>1.9 Tamarin 也能处理嵌套循环协议</h2>
+  <h2>1.11 Tamarin 也能处理嵌套循环协议</h2>
   <p class="slide-lede">PQ3 不只是在证明 iMessage；它也给形式化验证社区一个信号：真实的双棘轮式循环协议并不一定超出符号验证器能力。</p>
   <div class="proof-grid">
     <div class="proof-problem">
@@ -812,7 +986,7 @@ layout: default
 ---
 
 <div class="deck-slide pq3-wrap-slide">
-  <h2>PQ3 的价值：安全边界清楚，方法边界也被推进</h2>
+  <h2>1.12 PQ3 的价值：安全边界清楚，方法边界也被推进</h2>
   <p class="slide-lede">这一篇要带走两件事：它证明了 PQ3 在模型内的保密和认证边界，也展示了 Tamarin 可以处理更复杂的循环协议。</p>
   <div class="wrap-grid">
     <div class="wrap-card effort">
