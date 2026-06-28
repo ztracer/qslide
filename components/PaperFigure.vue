@@ -1,7 +1,7 @@
 <template>
   <figure class="paper-figure" :class="[sizeClass, toneClass]">
     <div class="paper-figure-image-wrap">
-      <img class="paper-figure-image" :src="src" :alt="alt || caption || label" />
+      <img class="paper-figure-image" :src="resolvedSrc" :alt="alt || caption || label" />
     </div>
     <figcaption class="paper-figure-caption">
       <span v-if="label" class="paper-figure-label">{{ label }}</span>
@@ -12,6 +12,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const props = defineProps({
   src: { type: String, required: true },
   alt: { type: String, default: '' },
@@ -24,6 +26,14 @@ const props = defineProps({
 
 const sizeClass = `paper-figure-${props.size}`
 const toneClass = `paper-figure-${props.tone}`
+
+const resolvedSrc = computed(() => {
+  if (!props.src.startsWith('/')) {
+    return props.src
+  }
+
+  return `${import.meta.env.BASE_URL}${props.src.slice(1)}`
+})
 </script>
 
 <style scoped>

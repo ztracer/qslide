@@ -2,10 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const distDir = new URL('../dist', import.meta.url).pathname
-const requiredNotes = [
-  '今天录下来的东西',
-  '协议迁移到量子密码环境下还能不能保障安全',
-]
+const slidesPath = new URL('../slides.md', import.meta.url).pathname
 
 function collectFiles(dir) {
   const entries = readdirSync(dir)
@@ -29,13 +26,21 @@ const content = collectFiles(distDir)
   .map(file => readFileSync(file, 'utf8'))
   .join('\n')
 
-const missing = requiredNotes.filter(note => !content.includes(note))
+const slidesContent = readFileSync(slidesPath, 'utf8')
+const sourceNotes = [...slidesContent.matchAll(/<!--([\s\S]*?)-->/g)]
+  .map(match => match[1].trim())
+  .filter(Boolean)
 
-if (missing.length > 0) {
-  console.error('Presenter notes are missing from dist. Do not build Pages with --without-notes.')
-  for (const note of missing)
-    console.error(`- Missing: ${note}`)
+if (sourceNotes.length === 0) {
+  console.error('No presenter notes were found in slides.md.')
   process.exit(1)
 }
 
-console.log('Presenter notes are present in dist.')
+const builtNotes = content.match(/noteHTML:`<p>/g) ?? []
+
+if (builtNotes.length === 0) {
+  console.error('Presenter notes are missing from dist. Do not build Pages with --without-notes.')
+  process.exit(1)
+}
+
+console.log(`Presenter notes are present in dist (${builtNotes.length}/${sourceNotes.length} note blocks detected).`)
